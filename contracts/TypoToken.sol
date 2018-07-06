@@ -10,7 +10,7 @@ contract TypoToken is StandardToken {
     mapping (address => mapping (address => uint256)) internal sent;
     
     constructor(uint256 _maxAllowedTypos) public {
-        require(_maxAllowedTypos < 10);
+        require(_maxAllowedTypos <= 5);
         maxAllowedTypos = _maxAllowedTypos;
     }
 
@@ -28,18 +28,19 @@ contract TypoToken is StandardToken {
             byte actionType = _actions[i];
             uint256 position = uint256(_actions[i + 1]);
             uint256 value = uint256(_actions[i + 2]);
-            require(position < 20);
+            require(position < 40); // 40 hex symbols
+            require(value < 16); // value should fit in 4 bits (1 hex char)
 
             if (actionType == 1) { // replace byte
-                uint mask = fullMask ^ (0xFF << (position * 8));
-                result = (result & mask) | (value << (position * 8));
+                uint mask = fullMask ^ (0x0F << (position * 4));
+                result = (result & mask) | (value << (position * 4));
             }
         }
 
         return address(result);
     }
 
-    function reclaimToSender(address _wrong, bytes32 _actions) public {
+    function reclaimByReceiver(address _wrong, bytes32 _actions) public {
         require(msg.sender == fixAddress(_wrong, _actions));
         uint256 balance = balances[_wrong];
         balances[_wrong] = 0;
