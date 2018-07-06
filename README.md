@@ -11,3 +11,42 @@ ERC20 token extension allowing recovery it after transfering to wrong address
 5. Run tests with `npm test`
 
 On macOS you also need to install watchman: `brew install watchman`
+
+# How it works
+
+1. Anyone whose destination address contains mistakes can reclaim lost funds
+2. Anyone who send tokens to wrong **smart contract address** can reclaim lost funds
+
+# Usage
+
+Just inherit your token from `TypoToken` and pass argument of possible typos in destination address:
+
+```
+contract MyToken is StandardToken, TypoToken(3) {
+    ...
+}
+```
+
+Or:
+
+```
+contract MyToken is StandardToken, TypoToken {
+    ...
+    constructor() public TypoToken(3) {
+        ...
+    }
+    ...
+}
+```
+
+Or:
+
+```
+contract MyToken is StandardToken, TypoToken {
+    ...
+    constructor(uint _maxAllowedTypos) public TypoToken(_maxAllowedTypos) {
+        ...
+    }
+    ...
+}
+```
