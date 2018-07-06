@@ -8,7 +8,11 @@ require('chai')
 
 const Token = artifacts.require('Token');
 
-contract('token', function ([_, wallet1, wallet2, wallet3, wallet4, wallet5]) {
+String.prototype.replaceAt = function (index, replacement) {
+    return this.substr(0, index) + replacement + this.substr(index + replacement.length);
+}
+
+contract('TypoToken', function ([_, wallet1, wallet2, wallet3, wallet4, wallet5]) {
     let token;
 
     beforeEach(async function () {
@@ -122,21 +126,75 @@ contract('token', function ([_, wallet1, wallet2, wallet3, wallet4, wallet5]) {
             await token.mint(wallet1, 1000);
         });
 
-        it('should restore with 1 byte error', async function () {
-            // await token.fixAddress.call(
-            //     "0x1234567812345678123456781234567812345678",
-            //     web3.fromAscii("\x01\x14\x01")
-            // ).should.be.rejectedWith(EVMRevert);
+        it('should restore with 1 char error', async function () {
+            let wallet2wrong;
+            let originalChar;
 
-            // await token.fixAddress.call(
-            //     "0x1234567812345678123456781234567812345678",
-            //     web3.fromAscii("\x01\x55\x01")
-            // ).should.be.rejectedWith(EVMRevert);
+            originalChar = wallet2.charAt(41);
+            wallet2wrong = wallet2.replaceAt(41, (originalChar == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(wallet2wrong, "\x01\x00" + web3.toAscii("0x0" + originalChar),  { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(1);
 
-            // await token.fixAddress.call(
-            //     "0x1234567812345678123456781234567812345678",
-            //     web3.fromAscii("\x01\xff\x01")
-            // ).should.be.rejectedWith(EVMRevert);
+            originalChar = wallet2.charAt(40);
+            wallet2wrong = wallet2.replaceAt(40, (originalChar == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(wallet2wrong, "\x01\x01" + web3.toAscii("0x0" + originalChar),  { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(2);
+
+            originalChar = wallet2.charAt(3);
+            wallet2wrong = wallet2.replaceAt(3, (originalChar == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(wallet2wrong, "\x01\x26" + web3.toAscii("0x0" + originalChar),  { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(3);
+
+            originalChar = wallet2.charAt(2);
+            wallet2wrong = wallet2.replaceAt(2, (originalChar == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(wallet2wrong, "\x01\x27" + web3.toAscii("0x0" + originalChar),  { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(4);
+        });
+
+        it('should restore with 2 chars error', async function () {
+            let wallet2wrong;
+            let originalChar1;
+            let originalChar2;
+
+            originalChar1 = wallet2.charAt(40);
+            originalChar2 = wallet2.charAt(41);
+            wallet2wrong = wallet2.replaceAt(40, (originalChar1 == '0') ? '1' : '0');
+            wallet2wrong = wallet2.replaceAt(41, (originalChar2 == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(
+                wallet2wrong,
+                "\x01\x01" + web3.toAscii("0x" + originalChar1) +
+                "\x01\x00" + web3.toAscii("0x" + originalChar2),
+                { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(1);
+
+            originalChar1 = wallet2.charAt(39);
+            originalChar2 = wallet2.charAt(40);
+            wallet2wrong = wallet2.replaceAt(39, (originalChar1 == '0') ? '1' : '0');
+            wallet2wrong = wallet2.replaceAt(40, (originalChar2 == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(
+                wallet2wrong,
+                "\x01\x02" + web3.toAscii("0x" + originalChar1) +
+                "\x01\x01" + web3.toAscii("0x" + originalChar2),
+                { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(2);
+
+            originalChar1 = wallet2.charAt(2);
+            originalChar2 = wallet2.charAt(3);
+            wallet2wrong = wallet2.replaceAt(2, (originalChar1 == '0') ? '1' : '0');
+            wallet2wrong = wallet2.replaceAt(3, (originalChar2 == '0') ? '1' : '0');
+            await token.transfer(wallet2wrong, 1, { from: wallet1 });
+            await token.reclaimByReceiver(
+                wallet2wrong,
+                "\x01\x27" + web3.toAscii("0x" + originalChar1) +
+                "\x01\x26" + web3.toAscii("0x" + originalChar2),
+                { from: wallet2 });
+            (await token.balanceOf.call(wallet2)).should.be.bignumber.equal(3);
         });
     });
 });
