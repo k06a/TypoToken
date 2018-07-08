@@ -1,14 +1,14 @@
 pragma solidity ^0.4.24;
 
 import "../lib/ERC888Token.sol";
-import "./TypoToken.sol";
+import "./TypoLib.sol";
 
 
-contract ERC888TypoToken is ERC888Token, TypoToken {
+contract ERC888TypoToken is ERC888Token, TypoLib {
 
     mapping (uint => mapping (address => mapping (address => uint))) internal sent_;
 
-    constructor(uint256 _maxAllowedTypos) public TypoToken(_maxAllowedTypos) {
+    constructor(uint256 _maxAllowedTypos) public TypoLib(_maxAllowedTypos) {
     }
 
     function transfer(uint _tokenId, address _to, uint _value) public returns (bool) {

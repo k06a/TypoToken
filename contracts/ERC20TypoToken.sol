@@ -1,14 +1,14 @@
 pragma solidity ^0.4.24;
 
 import "zeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
-import "./TypoToken.sol";
+import "./TypoLib.sol";
 
 
-contract ERC20TypoToken is StandardToken, TypoToken {
+contract ERC20TypoToken is StandardToken, TypoLib {
 
     mapping (address => mapping (address => uint256)) internal sent_;
 
-    constructor(uint256 _maxAllowedTypos) public TypoToken(_maxAllowedTypos) {
+    constructor(uint256 _maxAllowedTypos) public TypoLib(_maxAllowedTypos) {
     }
 
     function transfer(address _to, uint256 _value) public returns (bool) {
