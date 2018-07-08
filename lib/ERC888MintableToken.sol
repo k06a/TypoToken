@@ -16,10 +16,7 @@ contract ERC888MintableToken is Ownable, ERC888Token {
   bool public mintingFinished = false;
 
   modifier canMint(uint _tokenId) {
-    require(!mintingFinished);
-    if (totalSupply_[_tokenId] > 0) {
-      require(!tokenMintingFinished[_tokenId]);
-    }
+    require(!mintingFinished && !tokenMintingFinished[_tokenId]);
     _;
   }
 
