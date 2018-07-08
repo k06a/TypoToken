@@ -30,13 +30,18 @@ contract TypoLib {
             if (actionType == 1) { // replace byte
                 uint mask = fullMask ^ (0x0F << (position * 4));
                 result = (result & mask) | (value << (position * 4));
+            } else if (actionType == 2) { // delete byte
+                uint maskLow = (1 << (position * 4)) - 1;
+                uint maskHigh = fullMask ^ (maskLow << 4) ^ 0x0f;
+                result = ((result & maskHigh) >> 4) | (result & maskLow);
             } else {
                 revert();
             }
         }
 
-        require(_wrong != address(result));
-        return address(result);
+        address fixedAddress = address(result & fullMask);
+        require(_wrong != fixedAddress);
+        return address(fixedAddress);
     }
 
 }
