@@ -183,6 +183,48 @@ contract('TypoLib', function ([_, wallet1, wallet2, wallet3, wallet4, wallet5]) 
             });
         });
 
+        describe('insert character operation', async function () {
+            it('should works for 1st', async function () {
+                (await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    //                                        ^
+                    web3.fromAscii("\x03\x00\x05"))
+                ).should.be.equal("0x2345678123456781234567812345678123456785");
+            });
+
+            it('should works for 2nd', async function () {
+                (await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    //                                       ^
+                    web3.fromAscii("\x03\x01\x05"))
+                ).should.be.equal("0x2345678123456781234567812345678123456758");
+            });
+
+            it('should works for 39th', async function () {
+                (await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    //  ^
+                    web3.fromAscii("\x03\x26\x05"))
+                ).should.be.equal("0x2534567812345678123456781234567812345678");
+            });
+
+            it('should works for 40th', async function () {
+                (await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    // ^
+                    web3.fromAscii("\x03\x27\x05"))
+                ).should.be.equal("0x5234567812345678123456781234567812345678");
+            });
+
+            it('should works for 2nd and 39th', async function () {
+                (await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    //  ^                                    ^
+                    web3.fromAscii("\x03\x26\x05\x03\x01\x05"))
+                ).should.be.equal("0x5345678123456781234567812345678123456758");
+            });
+        });
+
         describe('error handling', async function () {
             it('should failure on position out of range [0,39]', async function () {
                 await lib.fixAddress.call(
@@ -218,10 +260,27 @@ contract('TypoLib', function ([_, wallet1, wallet2, wallet3, wallet4, wallet5]) 
                 ).should.be.rejectedWith(EVMRevert);
             });
 
-            it('should failure on type out of range [1,2]', async function () {
+            it('should failure on type out of range [1,3]', async function () {
+                await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    web3.fromAscii("\x01\x00\x01")
+                ).should.be.fulfilled;
+
+                await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    web3.fromAscii("\x02\x00\x01")
+                ).should.be.fulfilled;
+
                 await lib.fixAddress.call(
                     "0x1234567812345678123456781234567812345678",
                     web3.fromAscii("\x03\x00\x01")
+                ).should.be.fulfilled;
+
+                //
+
+                await lib.fixAddress.call(
+                    "0x1234567812345678123456781234567812345678",
+                    web3.fromAscii("\x04\x00\x01")
                 ).should.be.rejectedWith(EVMRevert);
 
                 await lib.fixAddress.call(

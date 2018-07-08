@@ -27,13 +27,22 @@ contract TypoLib {
             require(position < 40); // 40 hex symbols
             require(value < 16); // value should fit in 4 bits (1 hex char)
 
+            uint mask;
+            uint maskLow;
+            uint maskHigh;
             if (actionType == 1) { // replace byte
-                uint mask = fullMask ^ (0x0F << (position * 4));
+                mask = fullMask ^ (0x0F << (position * 4));
                 result = (result & mask) | (value << (position * 4));
-            } else if (actionType == 2) { // delete byte
-                uint maskLow = (1 << (position * 4)) - 1;
-                uint maskHigh = fullMask ^ (maskLow << 4) ^ 0x0f;
+            } else 
+            if (actionType == 2) { // delete byte
+                maskLow = (1 << (position * 4)) - 1;
+                maskHigh = fullMask ^ (maskLow << 4) ^ 0x0f;
                 result = ((result & maskHigh) >> 4) | (result & maskLow);
+            } else 
+            if (actionType == 3) { // insert byte
+                maskLow = (1 << (position * 4)) - 1;
+                maskHigh = fullMask ^ maskLow;
+                result = ((result & maskHigh) << 4) | (value << (position * 4)) | (result & maskLow);
             } else {
                 revert();
             }
