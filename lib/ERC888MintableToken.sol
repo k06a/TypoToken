@@ -13,6 +13,7 @@ contract ERC888MintableToken is Ownable, ERC888Token {
   event MintFinished();
 
   mapping (uint => bool) public tokenMintingFinished;
+  mapping (uint => address) public tokenMinter;
   bool public mintingFinished = false;
 
   modifier canMint(uint _tokenId) {
@@ -20,23 +21,17 @@ contract ERC888MintableToken is Ownable, ERC888Token {
     _;
   }
 
-  modifier hasMintPermission() {
-    require(msg.sender == owner);
+  modifier hasMintPermission(uint _tokenId) {
+    require(msg.sender == owner || msg.sender == tokenMinter[_tokenId]);
     _;
   }
 
-  /**
-   * @dev Function to mint tokens
-   * @param _to The address that will receive the minted tokens.
-   * @param _amount The amount of tokens to mint.
-   * @return A boolean that indicates if the operation was successful.
-   */
   function mint(
     uint _tokenId,
     address _to,
     uint256 _amount
   )
-    hasMintPermission
+    hasMintPermission(_tokenId)
     canMint(_tokenId)
     public
     returns (bool)
@@ -48,10 +43,10 @@ contract ERC888MintableToken is Ownable, ERC888Token {
     return true;
   }
 
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
+  function setTokenMinter(uint _tokenId, address _minter) public onlyOwner {
+    tokenMinter[_tokenId] = _minter;
+  }
+
   function finishMinting() onlyOwner public returns (bool) {
     require(!mintingFinished);
     mintingFinished = true;
@@ -59,10 +54,6 @@ contract ERC888MintableToken is Ownable, ERC888Token {
     return true;
   }
 
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
   function finishMintingToken(uint _tokenId) onlyOwner canMint(_tokenId) public returns (bool) {
     tokenMintingFinished[_tokenId] = true;
     emit TokenMintFinished(_tokenId);
